@@ -19,8 +19,8 @@ reduz_pnad204$V2007=as.numeric(reduz_pnad204$V2007)
 reduz_pnad204$VD4009=as.numeric(reduz_pnad204$VD4009)
 
 #Adicionando os rótulos criando uma nova variável (condat)
-table(RN$VD4001)
-reduz_pnad204$condat<-factor($VD4001,labels=c('PEA', 'Inativos'))
+table(reduz_pnad204$VD4001)
+reduz_pnad204$condat<-factor(reduz_pnad204$VD4001,labels=c('PEA', 'Inativos'))
 100*prop.table(table(reduz_pnad204$condat))
 
 #Adicionando os rótulos criando uma nova variável (condocup)
@@ -40,12 +40,13 @@ reduz_pnad204$sexo<-factor(reduz_pnad204$V2007,labels=c('Homens', 'Mulheres'))
 100*prop.table(table(reduz_pnad204$sexo))
 
 #Criando uma variável para expressar trabalhadores sem/com carteira de trabalho assinada (trabcarteira)
-reduz_pnad204$semcarteira[reduz_pnad204$VD4009==2 | reduz_pnad204$VD4009==4] <- "Sem carteira"
-reduz_pnad204$semcarteira[reduz_pnad204$VD4009==1 | reduz_pnad204$VD4009==3 | reduz_pnad204$VD4009==5 | 
+reduz_pnad204$trabcarteira[reduz_pnad204$VD4009==2 | reduz_pnad204$VD4009==4] <- "Sem carteira"
+
+reduz_pnad204$trabcarteira[reduz_pnad204$VD4009==1 | reduz_pnad204$VD4009==3 | reduz_pnad204$VD4009==5 | 
                             reduz_pnad204$VD4009==6 | reduz_pnad204$VD4009==7 | reduz_pnad204$VD4009==8 |
                             reduz_pnad204$VD4009==9]<- "com carteira/outro"
 
-table(reduz_pnad204$semcarteira)
+table(reduz_pnad204$trabcarteira)
 
 library("survey")
 
@@ -74,10 +75,10 @@ barplot(b*100, names.arg=c("Ocupadas","Desocupadas"), col="grey",
         sub="Fonte: PNAD C, 4o tri 2020.")
 
 #c)  Posição na ocupação  - Brasil
-svymean(~factor(semcarteira), design=sample.pnadc, na.rm=TRUE)
+svymean(~factor(trabcarteira), design=sample.pnadc, na.rm=TRUE)
 #Representação em gráfico
-c<-svymean(~factor(semcarteira), design=sample.pnadc, na.rm=TRUE)
-barplot(b*100, names.arg=c("Sem carteira","Com carteira/outro"), col="green", 
+c<-svymean(~factor(trabcarteira), design=sample.pnadc, na.rm=TRUE)
+barplot(b*100, names.arg=c("Com carteira/outro","Sem carteira"), col="green", 
         ylim=c(0,100), main="Posição na ocupação, Brasil, 4o tri 2020.",
         sub="Fonte: PNAD C, 4o tri 2020.",
         xlab="Sem carteira: setor privado+empreg.doméstico",
@@ -100,8 +101,8 @@ svyboxplot(~VD4016~factor(IDADECAT),
            ylim =c (0, 10000))
 
 #f)  Renda média por posição na ocupação  - Brasil
-svyby(~VD4016, ~semcarteira, sample.pnadc, svymean, na.rm=TRUE)
-svyboxplot(~VD4016~factor(semcarteira), 
+svyby(~VD4016, ~trabcarteira, sample.pnadc, svymean, na.rm=TRUE)
+svyboxplot(~VD4016~factor(trabcarteira), 
            design=sample.pnadc, xlab='PNAD C 4o tri 2020', ylab='R$', col="brown",main="Boxplot - Rendimento mensal por posição na ocupação, Brasil, 4o tri 2020", 
            font.main = 12, col.main = "black", cex.main = 0.9, outliers=TRUE,
            ylim =c (0, 10000))
@@ -114,10 +115,10 @@ svyboxplot(~VD4016~factor(semcarteira),
 
 CE <-reduz_pnad204[reduz_pnad204$UF==23,]
 
-#Para recompor o plano amostral para  sua UF (que vai se chamar subamostra e que você vai utilizar no lugar de sample.pnadc)
+#Para recompor o plano amostral para o Ceará
 subamostra <- svydesign(ids = ~UPA, strata = ~Estrato, weights = ~V1028, data = CE, na.rm=TRUE, nest = TRUE)
 
-# para evitar erro "has only one PSU at stage 1"
+#Para evitar erro "has only one PSU at stage 1"
 options(survey.lonely.psu = "adjust")
 
 #a)  Condição de atividade - CE
@@ -125,24 +126,24 @@ svymean(~factor(condat), design=subamostra, na.rm=TRUE)
 #Representação em gráfico
 a<-svymean(~factor(condat), design=subamostra, na.rm=TRUE)
 barplot(a*100, names.arg=c("PEA","Inativos"), col="purple", 
-        ylim=c(0,100), main="Condição de atividade, Brasil, 4o tri 2020.",
-        sub="Fonte: PNAD C, 4o tri 2020.")
+        ylim=c(0,100), main="Condição de atividade, Ceará, 4º tri 2020.",
+        sub="Fonte: PNAD Contínua, 4º tri 2020.")
 
 #b)  Condição de ocupação  - CE
 svymean(~factor(condocup), design=subamostra, na.rm=TRUE)
 #Representação em gráfico
 b<-svymean(~factor(condocup), design=subamostra, na.rm=TRUE)
 barplot(b*100, names.arg=c("Ocupadas","Desocupadas"), col="grey", 
-        ylim=c(0,100), main="Condição de ocupação, Brasil, 4o tri 2020.",
-        sub="Fonte: PNAD C, 4o tri 2020.")
+        ylim=c(0,100), main="Condição de ocupação, Ceará, 4º tri 2020.",
+        sub="Fonte: PNAD Contínua, 4º tri 2020.")
 
 #c)  Posição na ocupação  - CE
-svymean(~factor(semcarteira), design=subamostra, na.rm=TRUE)
+svymean(~factor(trabcarteira), design=subamostra, na.rm=TRUE)
 #Representação em gráfico
-c<-svymean(~factor(semcarteira), design=subamostra, na.rm=TRUE)
-barplot(b*100, names.arg=c("Sem carteira","Com carteira/outro"), col="green", 
-        ylim=c(0,100), main="Posição na ocupação, Brasil, 4o tri 2020.",
-        sub="Fonte: PNAD C, 4o tri 2020.",
+c<-svymean(~factor(trabcarteira), design=subamostra, na.rm=TRUE)
+barplot(b*100, names.arg=c("Com carteira/outro","Sem carteira"), col="green", 
+        ylim=c(0,100), main="Posição na ocupação, Ceará, 4º tri 2020.",
+        sub="Fonte: PNAD Contínua, 4º tri 2020.",
         xlab="Sem carteira: setor privado+empreg.doméstico",
         font.main=1, font.lab=4, font.sub=4)
 
@@ -151,21 +152,21 @@ svyby(~VD4016, ~sexo, subamostra, svymean, na.rm=TRUE)
 #Representação em gráfico
 svyboxplot(~VD4016~factor(sexo, 
                           labels=c('Homens','Mulheres')),
-           design=subamostra, xlab='PNAD C 4o tri 2020', ylab='R$', col="red",main="Boxplot - Rendimento mensal por sexo, Brasil, 4o tri 2020", 
+           design=subamostra, xlab='PNAD Contínua 4º tri 2020', ylab='R$', col="red",main="Boxplot - Rendimento mensal por sexo, Ceará, 4º tri 2020", 
            font.main = 4, col.main = "black", cex.main = 0.8, outliers=TRUE,
            ylim =c (0, 8000))
 
 #e)  Renda média por idade  - CE
 svyby(~VD4016, ~IDADECAT, subamostra, svymean, na.rm=TRUE)
 svyboxplot(~VD4016~factor(IDADECAT), 
-           design=subamostra, xlab='PNAD C 4o tri 2020', ylab='R$', col="orange",main="Boxplot - Rendimento mensal por grupo etário, Brasil, 4o tri 2020", 
+           design=subamostra, xlab='PNAD Contínua 4º tri 2020', ylab='R$', col="orange",main="Boxplot - Rendimento mensal por grupo etário, Ceará, 4º tri 2020", 
            font.main = 12, col.main = "black", cex.main = 0.9, outliers=TRUE,
            ylim =c (0, 10000))
 
 #f)  Renda média por posição na ocupação  - CE
-svyby(~VD4016, ~semcarteira, subamostra, svymean, na.rm=TRUE)
-svyboxplot(~VD4016~factor(semcarteira), 
-           design=subamostra, xlab='PNAD C 4o tri 2020', ylab='R$', col="brown",main="Boxplot - Rendimento mensal por posição na ocupação, Brasil, 4o tri 2020", 
+svyby(~VD4016, ~trabcarteira, subamostra, svymean, na.rm=TRUE)
+svyboxplot(~VD4016~factor(trabcarteira), 
+           design=subamostra, xlab='PNAD Contínua 4º tri 2020', ylab='R$', col="brown",main="Boxplot - Rendimento mensal por posição na ocupação, Ceará, 4º tri 2020", 
            font.main = 12, col.main = "black", cex.main = 0.9, outliers=TRUE,
            ylim =c (0, 10000))
 
