@@ -85,5 +85,9 @@ base %>%
                          trim = TRUE)) +
   xlab("Escolaridade do Pai") +
   ylab("Renda Média") +
-  scale_x_discrete()
+  scale_x_discrete()+
+  labs(
+    title = "Renda Média por Escolaridade do Pai",
+    subtitle = "Brasil, 2014",
+    caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")
 
