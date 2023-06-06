@@ -63,7 +63,11 @@ base %>% #contagem populacional, nao amostral, pois está com peso
                          trim = TRUE)) +
   xlab("Escolaridade do Pai") +
   ylab("Número de pessoas") +
-  scale_x_discrete()
+  scale_x_discrete()+
+  labs(
+    title = "Contagem Populacional por Escolaridade do Pai",
+    subtitle = "Brasil, 2014",
+    caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")
 
 # Renda média por escolaridade do pai
 
@@ -90,4 +94,33 @@ base %>%
     title = "Renda Média por Escolaridade do Pai",
     subtitle = "Brasil, 2014",
     caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")
+
+# Renda média por escolaridade do pai e área
+
+base %>% 
+  filter(morava_pai == 1) %>%
+  filter(is.na(escolaridade_pai) == FALSE) %>%
+  filter(zona != "") %>%
+  ggplot(aes(x = escolaridade_pai, y=renda_dom, weight = peso, fill=zona)) +
+  geom_bar(position = "dodge",
+           stat = "summary",
+           fun = "mean") +
+  scale_y_continuous(labels =
+                       scales::number_format(
+                         accuracy = NULL,
+                         scale = 1,
+                         prefix = "",
+                         suffix = "",
+                         big.mark = ".",
+                         decimal.mark = ",",
+                         trim = TRUE)) +
+  xlab("Escolaridade do Pai") +
+  ylab("Renda Média") +
+  scale_x_discrete()+
+  labs(
+    title = "Renda Média por Escolaridade do Pai e Zona de Moradia",
+    subtitle = "Brasil, 2014",
+    caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")+
+  scale_fill_discrete(name = "Zona",labels=c("Urbana","Rural"))
+
 
