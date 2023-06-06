@@ -7,6 +7,8 @@ library("survey")
 library("srvyr")
 library(tidyr)
 library(ggplot2)
+library(scales)
+
 
 pessoas = read_PNAD('pessoas', 2014, file = path.expand("C:/Users/Lhayana/Documents/pnad_2014_data/suplemento/PES2014.txt"))
 domicilios = read_PNAD('domicilios', 2014, file = path.expand("C:/Users/Lhayana/Documents/pnad_2014_data/suplemento/DOM2014.txt"))
@@ -22,11 +24,66 @@ base$V4602 = as.numeric(base$V4602)
 base$V32039 = as.numeric(base$V32039)
 
 base = filter(base, V0305==2) #Selecionados para o Suplemento de Mobilidade Sócio-Ocupacional
-
 base = rename(base, Estrato = V4602, peso = V32039, cor = V0404, renda_dom=V4742, renda_faixa=V4743, morava_uf_aos15=V32001, zona=V32004, morava_pai=V32010, escolaridade_pai=V32012, morava_mae=V32024, escolaridade_mae=V32026)
 
+#ESCOLARIDADE DO PAI
+
+base = mutate(base, escolaridade_pai = case_when((escolaridade_pai == "01") ~ "Fundamental ou inferior",
+                                      (escolaridade_pai == "02") ~ "Fundamental ou inferior",
+                                      (escolaridade_pai == "03") ~ "Fundamental ou inferior",
+                                      (escolaridade_pai == "04") ~ "Fundamental ou inferior",
+                                      (escolaridade_pai == "05") ~ "Fundamental ou inferior",
+                                      (escolaridade_pai == "06") ~ "Fundamental ou inferior",
+                                      (escolaridade_pai == "07") ~ "Fundamental ou inferior",
+                                      (escolaridade_pai == "08") ~ "Médio",
+                                      (escolaridade_pai == "09") ~ "Superior",
+                                      (escolaridade_pai == "10") ~ "Mestrado/Doutorado",
+                                      (escolaridade_pai == "11") ~ NA,
+                                      (escolaridade_pai == "12") ~ "Nenhum",
+  ))
+
+base$escolaridade_pai <- factor(base$escolaridade_pai,
+                  levels = c("Nenhum","Fundamental ou inferior", "Médio", "Superior", "Mestrado/Doutorado")) #reordenando
+
+# Escolaridade do pai por contagem populacional
+
 base %>% #contagem populacional, nao amostral, pois está com peso
-  filter(UF == 24) %>%
-  ggplot(aes(renda_dom, weight = peso)) +
-  geom_freqpoly(binwidth = 998)
-  
+  filter(morava_pai == 1) %>%
+  filter(is.na(escolaridade_pai) == FALSE) %>%
+  ggplot(aes(x = escolaridade_pai, weight = peso)) +
+  geom_bar(fill="#6495ED") +
+  scale_y_continuous(labels =
+                       scales::number_format(
+                         accuracy = NULL,
+                         scale = 1,
+                         prefix = "",
+                         suffix = "",
+                         big.mark = ".",
+                         decimal.mark = ",",
+                         trim = TRUE)) +
+  xlab("Escolaridade do Pai") +
+  ylab("Número de pessoas") +
+  scale_x_discrete()
+
+# Renda média por escolaridade do pai
+
+base %>% 
+  filter(morava_pai == 1) %>%
+  filter(is.na(escolaridade_pai) == FALSE) %>%
+  ggplot(aes(x = escolaridade_pai, y=renda_dom, weight = peso)) +
+  geom_bar(fill="#48D1CC", position = "dodge",
+           stat = "summary",
+           fun = "mean") +
+  scale_y_continuous(labels =
+                       scales::number_format(
+                         accuracy = NULL,
+                         scale = 1,
+                         prefix = "",
+                         suffix = "",
+                         big.mark = ".",
+                         decimal.mark = ",",
+                         trim = TRUE)) +
+  xlab("Escolaridade do Pai") +
+  ylab("Renda Média") +
+  scale_x_discrete()
+
