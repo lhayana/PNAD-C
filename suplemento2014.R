@@ -159,3 +159,101 @@ base %>%
     caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")+
   scale_fill_brewer(name = "Escolaridade do Pai", palette = "RdYlBu")
 
+base %>% 
+  filter(morava_pai == 1) %>%
+  filter(is.na(escolaridade_pai) == FALSE) %>%
+  filter(is.na(cor) == FALSE) %>%
+  ggplot(aes(x=escolaridade_pai, stat="count", vjust = -.5)) +
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels = scales::percent)+
+  xlab("Etnia") +
+  ylab("Número de Pessoas") +
+  scale_x_discrete()+
+  labs(
+    title = "Contagem Populacional por Etnia e Escolaridade do Pai",
+    subtitle = "Brasil, 2014",
+    caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")+
+  scale_fill_brewer(name = "Escolaridade do Pai", palette = "RdYlBu")+
+  facet_grid(~cor)
+
+# CRIANDO TABELAS PERCENTUAIS
+etnia_b = base %>%
+  filter(morava_pai == 1 & cor == "Branca" & is.na(escolaridade_pai) == FALSE) %>%
+  count(escolaridade_pai, wt = peso) %>%
+  mutate(freq = n/sum(n)) %>%
+  select("escolaridade_pai","freq")
+
+etnia_p = base %>%
+  filter(morava_pai == 1 & cor == "Preta/Parda" & is.na(escolaridade_pai) == FALSE) %>%
+  count(escolaridade_pai, wt = peso) %>%
+  mutate(freq = n/sum(n)) %>%
+  select("escolaridade_pai","freq")
+
+etnia_o = base%>%
+  filter(morava_pai == 1 & cor == "Outras" & is.na(escolaridade_pai) == FALSE) %>%
+  count(escolaridade_pai, wt = peso) %>%
+  mutate(freq = n/sum(n)) %>%
+  select("escolaridade_pai","freq")
+
+#Gráfico Escolaridade do Pai - Etnia Branca
+etnia_b %>%
+  ggplot(aes(x = "", y = freq, fill = escolaridade_pai, label=scales::percent(freq))) +
+  geom_bar(stat = "identity", width = 1, position = "dodge")+
+  xlab("") +
+  ylab("") +
+  labs(
+    title = "Escolaridade do Pai - Etnia Branca",
+    subtitle = "Brasil, 2014",
+    caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")+
+  scale_y_continuous(labels = scales::percent,
+                     breaks = scales::pretty_breaks(n = 4))+
+  scale_fill_brewer(name = "Escolaridade do Pai", palette = "RdYlBu")+
+  geom_text(
+    aes(label = sprintf("%1.1f%%", freq*100)),
+    position = position_dodge(0.99),
+    vjust = -.25,
+    size=3.2,
+    color="#363636",
+  )
+
+#Gráfico Escolaridade do Pai - Etnia Preta/Parda
+etnia_p %>%
+  ggplot(aes(x = "", y = freq, fill = escolaridade_pai, label=scales::percent(freq))) +
+  geom_bar(stat = "identity", width = 1, position = "dodge")+
+  xlab("") +
+  ylab("") +
+  labs(
+    title = "Escolaridade do Pai - Etnia Preta/Parda",
+    subtitle = "Brasil, 2014",
+    caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")+
+  scale_y_continuous(labels = scales::percent,
+                     breaks = scales::pretty_breaks(n = 4))+
+  scale_fill_brewer(name = "Escolaridade do Pai", palette = "RdYlBu")+
+  geom_text(
+    aes(label = sprintf("%1.1f%%", freq*100)),
+    position = position_dodge(0.99),
+    vjust = -.25,
+    size=3.2,
+    color="#363636",
+  )
+
+#Gráfico Escolaridade do Pai - Outras Etnias
+etnia_o %>%
+  ggplot(aes(x = "", y = freq, fill = escolaridade_pai, label=scales::percent(freq))) +
+  geom_bar(stat = "identity", width = 1, position = "dodge")+
+  xlab("") +
+  ylab("") +
+  labs(
+    title = "Escolaridade do Pai - Outras Etnias",
+    subtitle = "Brasil, 2014",
+    caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")+
+  scale_y_continuous(labels = scales::percent,
+                     breaks = scales::pretty_breaks(n = 4))+
+  scale_fill_brewer(name = "Escolaridade do Pai", palette = "RdYlBu")+
+  geom_text(
+    aes(label = sprintf("%1.1f%%", freq*100)),
+    position = position_dodge(0.99),
+    vjust = -.25,
+    size=3.2,
+    color="#363636",
+  )
