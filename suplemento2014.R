@@ -8,6 +8,7 @@ library("srvyr")
 library(tidyr)
 library(ggplot2)
 library(scales)
+library(RColorBrewer)
 
 
 pessoas = read_PNAD('pessoas', 2014, file = path.expand("C:/Users/Lhayana/Documents/pnad_2014_data/suplemento/PES2014.txt"))
@@ -123,4 +124,38 @@ base %>%
     caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")+
   scale_fill_discrete(name = "Zona",labels=c("Urbana","Rural"))
 
+# População por etnia e escolaridade do pai
+
+base = mutate(base, cor = case_when((cor == "2") ~ "Branca",
+                                                 (cor == "4") ~ "Preta/Parda",
+                                                 (cor == "6") ~ "Outras",
+                                                 (cor == "8") ~ "Preta/Parda",
+                                                 (cor == "0") ~ "Outras",
+                                                 (cor == "9") ~ "Outras"))
+
+base$cor <- factor(base$cor, levels = c("Branca","Preta/Parda", "Outras")) #reordenando
+
+base %>% 
+  filter(morava_pai == 1) %>%
+  filter(is.na(escolaridade_pai) == FALSE) %>%
+  filter(is.na(cor) == FALSE) %>%
+  ggplot(aes(x = cor, weight = peso, fill=escolaridade_pai)) +
+  geom_bar(position = "dodge") +
+  scale_y_continuous(labels =
+                       scales::number_format(
+                         accuracy = NULL,
+                         scale = 1,
+                         prefix = "",
+                         suffix = "",
+                         big.mark = ".",
+                         decimal.mark = ",",
+                         trim = TRUE)) +
+  xlab("Etnia") +
+  ylab("Número de Pessoas") +
+  scale_x_discrete()+
+  labs(
+    title = "Contagem Populacional por Etnia e Escolaridade do Pai",
+    subtitle = "Brasil, 2014",
+    caption = "Fonte: IBGE, Suplemento de mobilidade da PNAD, 2014.")+
+  scale_fill_brewer(name = "Escolaridade do Pai", palette = "RdYlBu")
 
