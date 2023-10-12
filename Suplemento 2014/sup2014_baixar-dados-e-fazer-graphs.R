@@ -30,6 +30,8 @@ base = rename(base, Estrato = V4602, peso = V32039, cor = V0404, renda_dom=V4742
 
 rm(pessoas,domicilios)
 
+# write.csv2(base, "C:/Users/Lhayana/Documents/GitHub/PNAD-C/dados.csv")
+
 ################ PAI ########################################
 
 #ESCOLARIDADE DO PAI
