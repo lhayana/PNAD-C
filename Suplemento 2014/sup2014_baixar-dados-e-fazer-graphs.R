@@ -1,5 +1,6 @@
 # SUPLEMENTO: https://www.ibge.gov.br/estatisticas/sociais/trabalho/19898-suplementos-pnad3.html?edicao=17983&t=downloads
 
+#devtools::install_github("lhayana/microdadosBrasil")
 library('microdadosBrasil')
 library('dplyr')
 library(dbplyr)
@@ -9,46 +10,69 @@ library(tidyr)
 library(ggplot2)
 library(scales)
 library(RColorBrewer)
-library(geobr)
+library(survey)
+options(survey.lonely.psu = "adjust")
 
 
-pessoas = read_PNAD('pessoas', 2014, file = path.expand("C:/Users/Lhayana/Documents/pnad_2014_data/suplemento/PES2014.txt"))
-domicilios = read_PNAD('domicilios', 2014, file = path.expand("C:/Users/Lhayana/Documents/pnad_2014_data/suplemento/DOM2014.txt"))
+pessoas = read_PNAD('pessoas', 2014, file = path.expand("C:/Users/Lhayana/Documents/GitHub/PNAD-C/Suplemento 2014/Dados/PES2014.txt"))
+domicilios = read_PNAD('domicilios', 2014, file = path.expand("C:/Users/Lhayana/Documents/GitHub/PNAD-C/Suplemento 2014/Dados/DOM2014.txt"))
 # V4742 = rendimento dom. per capita
-pessoas = select(pessoas,UF,V0102,V0103,V32039,V0404,V4742,V0305,V32001,V32004,V32010,V32012, V32024, V32026,V4743)
-domicilios = select(domicilios, V0102,V0103,V4602,UPA)
+pessoas = select(pessoas,UF,V0102,V0103,V4729,V32039,V0404,V4742,V0305,V32001,V32004,V32010,V32012, V32024, V32026,V4743,V4803,V9611,V8005,V0302, V32015, V32029)
+domicilios = select(domicilios, V0102,V0103,V4602,UPA,V4609, V4617, V4626, V4618)
+
+pessoas = filter(pessoas, V0305==2) #Selecionados para o Suplemento de Mobilidade Sócio-Ocupacional
 
 base = merge(x=pessoas,y=domicilios,by=c("V0102","V0103"))
+base$V4609 = as.numeric(base$V4609)
 
 base$V4742 = sub("^0+", "", base$V4742) #tira zeros da esquerda  
 base$V4742 = as.integer(base$V4742)
 base$V4602 = as.numeric(base$V4602)
 base$V32039 = as.numeric(base$V32039)
-
+ 
 base = filter(base, V0305==2) #Selecionados para o Suplemento de Mobilidade Sócio-Ocupacional
-base = rename(base, Estrato = V4602, peso = V32039, cor = V0404, renda_dom=V4742, renda_faixa=V4743, morava_uf_aos15=V32001, zona=V32004, morava_pai=V32010, escolaridade_pai=V32012, morava_mae=V32024, escolaridade_mae=V32026)
-
+base = rename(base, Estrato = V4617, peso = V4729, cor = V0404, renda_dom=V4742, renda_faixa=V4743, morava_uf_aos15=V32001, zona=V32004, morava_pai=V32010, escolaridade_pai=V32012, morava_mae=V32024, escolaridade_mae=V32026,anos_estudo_filho=V4803, anos_exp = V9611, age=V8005, sex=V0302, pai_empreg=V32015, mae_empreg=V32029)
+class(base$V4609)
 rm(pessoas,domicilios)
 
-# write.csv2(base, "C:/Users/Lhayana/Documents/GitHub/PNAD-C/dados.csv")
+write.csv2(base, "C:/Users/Lhayana/Documents/GitHub/PNAD-C/Suplemento 2014/Dados/dados.csv")
+
+# pop_types <- data.frame(V4609 = unique(base$V4609), Freq = unique(base$V4609))
+# prestratified_design <-
+#   svydesign(id = ~ V4618,
+#             strata = ~ Estrato ,
+#             data = base ,
+#             weights = ~ peso ,
+#             na.rm = TRUE,
+#             nest = TRUE)
+# gc()
+# dados_estratificados <-
+#   postStratify(design = prestratified_design,
+#                strata = ~ V4609,
+#                population = pop_types)
+# 
+# rm(prestratified_design)
+# gc()
+
+################ GRÁFICOS ##################################################
 
 ################ PAI ########################################
 
 #ESCOLARIDADE DO PAI
 
 base = mutate(base, escolaridade_pai = case_when((escolaridade_pai == "01") ~ "Fundamental ou inferior",
-                                      (escolaridade_pai == "02") ~ "Fundamental ou inferior",
-                                      (escolaridade_pai == "03") ~ "Fundamental ou inferior",
-                                      (escolaridade_pai == "04") ~ "Fundamental ou inferior",
-                                      (escolaridade_pai == "05") ~ "Fundamental ou inferior",
-                                      (escolaridade_pai == "06") ~ "Fundamental ou inferior",
-                                      (escolaridade_pai == "07") ~ "Fundamental ou inferior",
-                                      (escolaridade_pai == "08") ~ "Médio",
-                                      (escolaridade_pai == "09") ~ "Superior",
-                                      (escolaridade_pai == "10") ~ "Mestrado/Doutorado",
-                                      (escolaridade_pai == "11") ~ NA,
-                                      (escolaridade_pai == "12") ~ "Nenhum",
-  ))
+                                                 (escolaridade_pai == "02") ~ "Fundamental ou inferior",
+                                                 (escolaridade_pai == "03") ~ "Fundamental ou inferior",
+                                                 (escolaridade_pai == "04") ~ "Fundamental ou inferior",
+                                                 (escolaridade_pai == "05") ~ "Fundamental ou inferior",
+                                                 (escolaridade_pai == "06") ~ "Fundamental ou inferior",
+                                                 (escolaridade_pai == "07") ~ "Fundamental ou inferior",
+                                                 (escolaridade_pai == "08") ~ "Médio",
+                                                 (escolaridade_pai == "09") ~ "Superior",
+                                                 (escolaridade_pai == "10") ~ "Mestrado/Doutorado",
+                                                 (escolaridade_pai == "11") ~ NA,
+                                                 (escolaridade_pai == "12") ~ "Nenhum",
+))
 
 base$escolaridade_pai <- factor(base$escolaridade_pai,
                   levels = c("Nenhum","Fundamental ou inferior", "Médio", "Superior", "Mestrado/Doutorado")) #reordenando
